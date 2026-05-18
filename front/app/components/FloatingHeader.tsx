@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, User } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { logout } from "@/lib/api";
 
 export default function FloatingHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -21,7 +21,7 @@ export default function FloatingHeader() {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
     router.push("/");
   };
 

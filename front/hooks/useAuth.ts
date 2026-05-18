@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { User } from '@/lib/types'
-import { supabase } from '@/lib/supabase'
+import { getCurrentUser, getAuthToken } from '@/lib/api'
 import { getUserProfile, UserProfile } from '@/lib/userService'
 
 export function useAuth() {
@@ -13,31 +13,35 @@ export function useAuth() {
   useEffect(() => {
     let mounted = true;
 
-    // Subscribe to auth state changes PRIMEIRO
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) {
-        setUser(session?.user || null)
-        setLoading(false)
-      }
-    })
+    async function checkAuth() {
+      try {
+        const token = getAuthToken()
+        if (!token) {
+          setUser(null)
+          setLoading(false)
+          return
+        }
 
-    // Depois verificar o estado atual
-    supabase.auth.getUser()
-      .then(({ data: { user }, error }) => {
+        const user = await getCurrentUser()
         if (mounted) {
-          if (error) {
-            setError(error.message)
-            setUser(null)
-          } else {
-            setUser(user)
-          }
+          setUser(user)
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : 'Erro ao autenticar')
+          setUser(null)
+        }
+      } finally {
+        if (mounted) {
           setLoading(false)
         }
-      })
+      }
+    }
+
+    checkAuth()
 
     return () => {
       mounted = false
-      subscription?.unsubscribe()
     }
   }, [])
 

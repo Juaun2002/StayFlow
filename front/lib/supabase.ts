@@ -1,10 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
+// ⚠️ DEPRECATED: Supabase foi removido
+// Use apenas as APIs em lib/api.ts que consomem o backend Django
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Check .env.local')
+export const supabase = {
+  auth: {
+    signOut: () => Promise.reject(new Error('Use logout() de lib/api.ts')),
+    getUser: () => Promise.reject(new Error('Use getCurrentUser() de lib/api.ts')),
+    signUp: () => Promise.reject(new Error('Use register() de lib/api.ts')),
+    signInWithPassword: () => Promise.reject(new Error('Use login() de lib/api.ts')),
+    onAuthStateChange: () => ({ data: { subscription: null } }),
+  },
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
