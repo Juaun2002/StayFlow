@@ -1,194 +1,149 @@
-# APS - Apartment/Property System
+# StayFlow
 
-## ✅ Estrutura Implementada
+StayFlow e uma aplicacao para gerenciamento de imoveis e reservas. O projeto esta organizado como monorepo, com frontend em Next.js e backend em Django REST Framework.
 
-### Frontend (Next.js) - `/front`
-- ✅ Configurado para conectar com Supabase
-- ✅ Dependência `@supabase/supabase-js` adicionada
-- ✅ Cliente Supabase configurado (`lib/supabase.ts`)
-- ✅ Tipos TypeScript definidos (`lib/types.ts`)
-- ✅ Funções de API prontas (`lib/api.ts`)
-- ✅ Hooks customizados (`hooks/useAuth.ts`)
+## Visao Geral
 
-### Backend - `/back`
-- ❌ Django removido (substituído por Supabase)
-- ✅ Instruções de setup do Supabase (`SUPABASE_SETUP.md`)
-- ✅ Credenciais configuradas (`package.json` como referência)
+- Frontend: Next.js 16, React 19, TypeScript, Tailwind CSS, Framer Motion, Lucide React e Recharts.
+- Backend: Django 4.2, Django REST Framework, JWT com Simple JWT e PostgreSQL.
+- Banco de dados: PostgreSQL 15, com Docker Compose disponivel no backend.
+- Dominio principal: usuarios, propriedades/imoveis e reservas/agendamentos.
 
----
+## Estrutura
 
-## 🚀 Próximas Etapas
+```text
+StayFlow/
+  front/                  # Aplicacao web Next.js
+    app/                  # Rotas, paginas e componentes
+    hooks/                # Hooks React
+    lib/                  # Cliente de API, tipos e servicos
+    package.json
 
-### 1️⃣ Criar Projeto no Supabase
-1. Acesse [supabase.com](https://supabase.com)
-2. Crie um novo projeto
-3. Copie a URL do projeto e a chave anônima
-4. Cole em `front/.env.local`:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=your-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
-   ```
-
-### 2️⃣ Criar Tabelas no Supabase
-- Siga as instruções em `back/SUPABASE_SETUP.md`
-- Execute os comandos SQL no editor do Supabase
-- Configure RLS (Row Level Security)
-
-### 3️⃣ Instalar Dependências do Frontend
-```bash
-cd front
-npm install
-# ou yarn install
+  back/                   # API Django REST
+    apps/
+      users/              # Usuarios, registro, login e perfil
+      properties/         # CRUD e filtros de propriedades
+      bookings/           # Reservas, disponibilidade e status
+    core/                 # Configuracoes e rotas principais
+    docker-compose.yml
+    requirements.txt
 ```
 
-### 4️⃣ Rodar o Frontend
+## Funcionalidades
+
+- Autenticacao por email e senha com JWT.
+- Cadastro e consulta de perfil do usuario autenticado.
+- CRUD de propriedades com filtros por cidade, tipo, status e faixa de preco.
+- Listagem publica de propriedades.
+- Reservas com validacao de datas, calculo de preco total e controle de status.
+- Confirmacao e cancelamento de reservas.
+- Consulta de datas ocupadas por propriedade.
+- Dashboard web com estatisticas do portfolio de propriedades.
+
+## Estado Atual do Projeto
+
+O backend Django e a API em `front/lib/api.ts` representam o caminho principal atual do projeto.
+
+Ainda existem arquivos e trechos legados relacionados ao Supabase no frontend e em documentos antigos. Alguns exemplos:
+
+- `front/lib/supabase.ts` esta marcado como deprecated.
+- `front/app/bookings/page.tsx`, `front/app/properties/new/page.tsx` e parte de `front/hooks/useAuth.ts` ainda usam chamadas no estilo Supabase.
+- `front/lib/types.ts` importa tipos de `@supabase/supabase-js`, mas essa dependencia nao aparece no `front/package.json`.
+
+Antes de considerar o frontend totalmente integrado ao backend Django, essas telas e tipos precisam ser migrados para `front/lib/api.ts`.
+
+## Requisitos
+
+- Node.js compativel com Next.js 16.
+- npm.
+- Python 3.11+.
+- Docker e Docker Compose, recomendado para subir PostgreSQL e backend juntos.
+
+## Como Rodar
+
+### Backend com Docker
+
 ```bash
+cd StayFlow/back
+docker-compose up --build
+```
+
+A API ficara disponivel em:
+
+```text
+http://localhost:8000
+```
+
+Principais rotas:
+
+```text
+http://localhost:8000/admin/
+http://localhost:8000/api/v1/auth/
+http://localhost:8000/api/v1/properties/
+http://localhost:8000/api/v1/bookings/
+```
+
+### Backend Local
+
+```bash
+cd StayFlow/back
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+> Observacao: o codigo usa `django_filters`. Se o ambiente local acusar erro de importacao, adicione `django-filter` nas dependencias e instale novamente.
+
+### Frontend
+
+```bash
+cd StayFlow/front
+npm install
 npm run dev
 ```
 
-Acesse `http://localhost:3000`
+O frontend ficara disponivel em:
 
----
-
-## 📚 Como Usar a API
-
-### Autenticação
-```typescript
-import { signIn, signUp, signOut } from '@/lib/api'
-
-// Sign up
-await signUp('user@example.com', 'password')
-
-// Sign in
-await signIn('user@example.com', 'password')
-
-// Sign out
-await signOut()
+```text
+http://localhost:3000
 ```
 
-### Gerenciar Propriedades
-```typescript
-import { 
-  getProperties, 
-  getPropertyById, 
-  createProperty,
-  updateProperty,
-  deleteProperty,
-  getUserProperties 
-} from '@/lib/api'
+Configure a URL da API em `front/.env.local` quando necessario:
 
-// Listar todas
-const properties = await getProperties()
-
-// Filtrar
-const filtered = await getProperties({
-  city: 'São Paulo',
-  property_type: 'apartment',
-  minPrice: 100000,
-  maxPrice: 500000
-})
-
-// Uma propriedade
-const property = await getPropertyById(1)
-
-// Criar
-const newProperty = await createProperty({
-  title: 'Apartamento 2 quartos',
-  price: 250000,
-  // ... outros campos
-  owner_id: userId
-})
-
-// Atualizar
-await updateProperty(1, { status: 'sold' })
-
-// Deletar
-await deleteProperty(1)
-
-// Minhas propriedades
-const myProps = await getUserProperties(userId)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_TOKEN_KEY=stayflow_token
 ```
 
-### Upload de Imagens
-```typescript
-import { uploadPropertyImage } from '@/lib/api'
+## Scripts Uteis
 
-const file = new File([...], 'property.jpg')
-const imageUrl = await uploadPropertyImage(file, propertyId)
+Backend:
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+python test_api.py
+docker-compose up --build
+docker-compose down
 ```
 
-### Usar Hooks
-```typescript
-'use client'
+Frontend:
 
-import { useAuth, useProperties } from '@/hooks'
-
-export default function Page() {
-  const { user, loading, error } = useAuth()
-  const { properties, loading: loadingProps } = useProperties()
-
-  if (loading) return <div>Carregando...</div>
-  if (error) return <div>Erro: {error}</div>
-
-  return (
-    <div>
-      {user && <p>Bem-vindo, {user.email}!</p>}
-      {properties.map(prop => (
-        <div key={prop.id}>{prop.title}</div>
-      ))}
-    </div>
-  )
-}
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
 ```
 
----
+## Documentacao
 
-## 📁 Estrutura Final
+A documentacao consolidada esta em:
 
-```
-APS/
-├── front/               # Next.js App
-│   ├── app/            # Pages e components
-│   ├── lib/            # Supabase client, types, API
-│   ├── hooks/          # Custom React hooks
-│   ├── .env.local      # Credenciais Supabase
-│   └── package.json    # @supabase/supabase-js
-│
-└── back/               # Documentação do Supabase
-    ├── SUPABASE_SETUP.md
-    └── package.json    # Referência
-```
+- [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)
 
----
-
-## 🔑 Variáveis de Ambiente
-
-### `.env.local` (Frontend)
-```
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
-```
-
-> ⚠️ Estas chaves são públicas (NEXT_PUBLIC_), use RLS no Supabase para segurança
-
----
-
-## 🛡️ Segurança
-
-- **RLS ativado** nas tabelas (controle por usuário)
-- **Auth integrado** (Supabase Auth)
-- **Uploads seguro** via Storage do Supabase
-- **Chave anônima** usada no frontend (está seguro com RLS)
-
----
-
-## ✨ Recursos
-
-- ✅ Autenticação com email/password
-- ✅ CRUD de propriedades
-- ✅ Filtros avançados
-- ✅ Upload de imagens
-- ✅ Real-time (subscriptions disponíveis)
-- ✅ Já integrado com Next.js 16
-
-Tá tudo pronto para começar! 🎉
+Ela cobre arquitetura, variaveis de ambiente, endpoints, modelos principais, fluxo de autenticacao, testes e proximos ajustes recomendados.
