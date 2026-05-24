@@ -305,21 +305,3 @@ Fluxo esperado:
 4. Requisicoes autenticadas enviam `Authorization: Bearer <token>`.
 5. Rotas protegidas validam usuario atual em `/auth/me/`.
 
-## 9. Pontos de Atencao
-
-- `front/lib/supabase.ts` e legado e deve ser removido apos a migracao completa.
-- Algumas telas ainda usam chamadas Supabase diretamente e devem passar a usar `front/lib/api.ts`.
-- `front/lib/types.ts` ainda importa `@supabase/supabase-js`, mas essa dependencia nao esta em `package.json`.
-- O backend importa `django_filters`, mas `django-filter` nao aparece em `requirements.txt`.
-- A documentacao antiga na raiz e dentro de `front/` ainda contem referencias historicas a Supabase.
-- Os metodos `perform_update` e `perform_destroy` nos ViewSets retornam `Response` dentro de hooks que normalmente esperam excecoes; vale revisar permissao para garantir resposta HTTP 403 consistente.
-
-## 10. Proximos Ajustes Recomendados
-
-1. Migrar `front/app/properties/new/page.tsx` para usar `createProperty`.
-2. Migrar `front/app/bookings/page.tsx` para usar funcoes de bookings em `front/lib/api.ts`.
-3. Corrigir `useProperties` para chamar `getUserProperties` ou `getProperties`.
-4. Atualizar `front/lib/types.ts` para refletir os serializers Django.
-5. Adicionar `django-filter` ao `back/requirements.txt`.
-6. Rodar `npm run build` e corrigir erros de TypeScript causados por codigo legado.
-7. Revisar os documentos antigos e remover referencias obsoletas a Supabase quando a migracao terminar.
